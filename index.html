@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لعبة المربعات</title>
+  <!-- إضافة مكتبة Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="styles.css"> <!-- رابط ملف CSS -->
+</head>
+<body>
+  <!-- إضافة زر التبديل في أعلى اليسار -->
+  <div id="toggleMenu" onclick="toggleOptionsVisibility()">
+    <div class="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+  <div id="toggleOptions" style="display:none;">
+    <button id="toggleGoalsBtn" onclick="toggleGoalsPanel()">عرض المهمات</button>
+    <button id="toggleSquaresBtn" onclick="toggleSquaresPanel()">عرض المربعات</button>
+    <button onclick="saveGame()">حفظ اللعبة</button>
+    <button onclick="loadGame()">تحميل اللعبة</button>
+  </div>
+  
+  <div class="menu">
+    <h3>المربعات:</h3>
+    <p><span style="background-color: #32CD32; width: 20px; height: 20px; display: inline-block;"></span> عشب: <span id="grassCount">0</span></p>
+    <p><span style="background-color: #A9A9A9; width: 20px; height: 20px; display: inline-block;"></span> حجر: <span id="stoneCount">0</span></p>
+    <p><span style="background-color: #FFD700; width: 20px; height: 20px; display: inline-block;"></span> ذهب: <span id="goldCount">0</span></p>
+    <p><span style="background-color: #00CED1; width: 20px; height: 20px; display: inline-block;"></span> ألماس: <span id="diamondCount">0</span></p>
+    <p>💣 متفجرات: <span id="bombCount">0</span></p>
+  </div>
+  <div>
+    <h1>لعبة المربعات</h1>
+    <!-- Added money display -->
+    <p id="money">0</p>
+    <div class="controls">
+      <button id="nextLevelBtn" style="display:none;" onclick="attemptLevelAdvance()">المستوى التالي</button>
+    </div>
+    <div id="squares" class="container"></div>
+  </div>
+  <!-- Add score display element above the money button -->
+  <div id="scoreDisplay" class="score-display">0</div>
+  <button class="money-button" onclick="addMoney()">+</button>
+
+  <!-- شاشة المتجر -->
+  <div class="overlay" id="overlay"></div>
+  <div class="store" id="store">
+    <div class="tabs">
+      <button onclick="switchTab('items')" class="active">العناصر</button>
+      <button onclick="switchTab('upgrades')">الترقيات</button>
+    </div>
+    <div id="itemsTab">
+      <h2>المتجر - العناصر</h2>
+      <div class="bomb-info">
+        <p>عدد المتفجرات: <span id="storeBombCount">0</span></p>
+      </div>
+      <div class="store-item">
+        <span>شراء متفجرة (1000 نقطة)</span>
+        <button onclick="buyItem('bomb', 1000)">شراء</button>
+      </div>
+    </div>
+    <div id="upgradesTab" style="display: none;">
+      <h2>المتجر - الترقيات</h2>
+      <div class="upgrade-info">
+        <p>سرعة جمع الموارد: <span id="speedLevel">1</span> (السعر: <span id="speedPrice">100</span>)</p>
+        <p>مضاعف الأسعار: <span id="priceLevel">1</span> (السعر: <span id="pricePrice">200</span>)</p>
+        <p>قوة المتفجرات: <span id="bombPowerLevel">1</span> (السعر: <span id="bombPowerPrice">150</span>)</p>
+      </div>
+      <div class="store-item">
+        <span>زيادة سرعة جمع الموارد</span>
+        <button onclick="buyUpgrade('speed')">شراء</button>
+      </div>
+      <div class="store-item">
+        <span>تقليل أسعار المربعات</span>
+        <button onclick="buyUpgrade('price')">شراء</button>
+      </div>
+      <div class="store-item">
+        <span>زيادة قوة المتفجرات</span>
+        <button onclick="buyUpgrade('bombPower')">شراء</button>
+      </div>
+    </div>
+    <button onclick="closeStore()">إغلاق المتجر</button>
+  </div>
+
+  <!-- شاشة الثيمات الجديدة مشابهة للمتجر -->
+  <div class="overlay" id="themeOverlay" style="display:none;"></div>
+  <div class="store" id="themeScreen" style="display:none;">
+    <h2>اختر لون مربعك</h2>
+    <div class="theme-options">
+      <!-- Updated: added "theme-option" class and pass 'this' -->
+      <button class="theme-option" style="background-color: #4CAF50;" onclick="selectThemeColor('#4CAF50', this)"></button>
+      <button class="theme-option" style="background-color: #FF0000;" onclick="selectThemeColor('#FF0000', this)"></button>
+      <button class="theme-option" style="background-color: #0000FF;" onclick="selectThemeColor('#0000FF', this)"></button>
+      <button class="theme-option" style="background-color: #FFD700;" onclick="selectThemeColor('#FFD700', this)"></button>
+      <button class="theme-option" style="background-color: #A9A9A9;" onclick="selectThemeColor('#A9A9A9', this)"></button>
+    </div>
+    <button onclick="closeThemeScreen()">إغلاق</button>
+  </div>
+
+  <!-- قسم الأهداف -->
+  <div class="goals">
+    <h3>الأهداف:</h3>
+    <div id="goalsList"></div>
+  </div>
+  
+  <!-- إضافة مربع المربعات بنفس تصميم أهداف اللعبة -->
+  <div id="squaresPanel" class="goals" style="display:none;">
+    <h3>المربعات:</h3>
+    <!-- محتوى المربعات التي جمعتها -->
+    <div id="squaresContent">المربعات التي جمعتها</div>
+  </div>
+
+  <!-- تعديل زر الثيم: تغيير onclick من openThemeScreen() إلى themeButtonClicked() -->
+  <div id="themeButton" onclick="themeButtonClicked()">
+    <span class="theme-icon">🎨</span>
+  </div>
+  <!-- إزالة زر الكود الغش القديم -->
+  <!-- Existing fixed store button -->
+  <div id="storeButton" onclick="openStore()">
+    <span class="store-icon">🛒</span>
+  </div>
+  <!-- Existing fixed bomb button -->
+  <div id="bombButton" onclick="activateBomb()">
+    <span class="bomb-emoji">💣</span>
+    <div id="bombCounter">0</div>
+  </div>
+
+  <!-- إضافة شاشة النصر -->
+  <div id="victoryScreen" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index:2000; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+    <div id="victoryMessage" class="animate__animated" style="background: #4CAF50; padding: 30px; border-radius:10px; text-align:center;">
+      <h1>مبروك!</h1>
+      <!-- زرارين -->
+      <button onclick="continueGame()" style="padding: 10px 20px; margin: 10px;">استمر في اللعب</button>
+      <button onclick="nextLevel()" style="padding: 10px 20px; margin: 10px;">المستوي التالي</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="level.js"></script>
+</body>
+</html>
